@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Ultimate Clicker - Owner Edition</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #0f172a; color: #fff; padding: 20px; overflow-x: hidden; }
         
-        /* PENGUMUMAN OWNER - Ukuran sudah dikecilkan */
         #owner-announcement {
             position: fixed; top: -100px; left: 0; width: 100%; padding: 12px;
             background: linear-gradient(90deg, #ff0080, #7928ca);
@@ -18,7 +17,6 @@
         }
         #owner-announcement.show { top: 0; }
 
-        /* ADMIN GUI (POJOK KANAN ATAS) */
         .admin-gui-trigger {
             position: fixed; top: 10px; right: 10px; z-index: 1000;
             background: #1e293b; border: 1px solid #ff0080; color: #ff0080;
@@ -33,7 +31,6 @@
             border-radius: 12px; z-index: 1001; box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
-        /* GAME LAYOUT */
         .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 950px; margin: auto; }
         .container { background: #1e293b; padding: 20px; border-radius: 20px; border: 1px solid #334155; }
         .stats-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; background: #000; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #3b82f6; }
@@ -57,46 +54,46 @@
 </head>
 <body>
 
-    <div id="owner-announcement">Pesan Owner!</div>
+    <div id="owner-announcement">Owner Message!</div>
 
-    <button class="admin-gui-trigger" onclick="toggleAdminPanel()">⚙️ ADMIN</button>
+    <button class="admin-gui-trigger" onclick="checkAdminPassword()">⚙️ ADMIN</button>
 
     <div id="admin-panel">
         <h4 style="color:#ff0080; margin:0 0 10px 0;">Owner Tools</h4>
-        <input type="text" id="admin-msg-input" placeholder="Teks pengumuman...">
-        <button class="btn-buy" style="width:100%; background:#7928ca; font-size:0.8rem;" onclick="sendOwnerMessage()">KIRIM PESAN</button>
-        <button onclick="toggleAdminPanel()" style="background:none; color:gray; font-size:0.6rem; margin-top:10px;">Tutup [X]</button>
+        <input type="text" id="admin-msg-input" placeholder="Announcement text...">
+        <button class="btn-buy" style="width:100%; background:#7928ca; font-size:0.8rem;" onclick="sendOwnerMessage()">SEND MESSAGE</button>
+        <button onclick="closeAdminPanel()" style="background:none; color:gray; font-size:0.6rem; margin-top:10px;">Close [X]</button>
     </div>
 
     <h1>💎 Ultimate Clicker Tycoon</h1>
     
     <div id="flash-event" class="expired-txt" style="background: #450a0a; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
-        ⚠️ KODE 'DGY' EXPIRED DALAM: <span id="timer-expired">19</span> DETIK!
+        ⚠️ CODE 'DGY' EXPIRES IN: <span id="timer-expired">19</span>s!
     </div>
 
     <div class="stats-bar">
         <div class="stats-item">⏱️ <span id="waktu">300</span>s</div>
-        <div class="stats-item coin-txt">💰 Koin: <span id="koin">0</span></div>
+        <div class="stats-item coin-txt">💰 Coins: <span id="koin">0</span></div>
         <div class="stats-item diamond-txt">💎 DM: <span id="dm">0</span></div>
-        <div class="stats-item">🏆 Skor: <span id="skor">0</span></div>
+        <div class="stats-item">🏆 Score: <span id="skor">0</span></div>
         <div class="stats-item" style="color:#ff00ea">🎰 Spin: <span id="jumlah-spin">0</span></div>
     </div>
 
     <div class="game-grid">
         <div>
             <div class="container">
-                <button id="btn-klik" onclick="tambahSkor()">KLIK!</button>
+                <button id="btn-klik" onclick="tambahSkor()">CLICK!</button>
                 <p id="multiplier-active" style="color:#10b981; font-weight:bold; font-size: 0.9rem;">Multiplier: 1x</p>
                 
                 <div class="section">
                     <strong>🎟️ REDEEM CODE</strong>
-                    <input type="text" id="input-kode" placeholder="Masukkan kode...">
-                    <button class="btn-buy" style="width:100%" onclick="redeem()">Klaim</button>
+                    <input type="text" id="input-kode" placeholder="Enter code...">
+                    <button class="btn-buy" style="width:100%" onclick="redeem()">Claim</button>
                 </div>
 
                 <div class="section" style="text-align:center;">
                     <strong>🎰 LUCKY WHEEL</strong><br><br>
-                    <button class="btn-spin" onclick="putarSpin()">PUTAR SPIN</button>
+                    <button class="btn-spin" onclick="putarSpin()">SPIN NOW</button>
                     <p id="spin-result" style="margin-top:10px; font-weight:bold; color:#f59e0b; font-size:0.9rem; min-height: 20px;"></p>
                 </div>
             </div>
@@ -104,17 +101,17 @@
 
         <div>
             <div class="container" style="margin-bottom:20px;">
-                <strong>🏪 SHOP KOIN</strong>
-                <div class="shop-item"><span>3x (20 Koin)</span><button id="p3" class="btn-buy" onclick="beliPower(3, 20, 'p3')">Beli</button></div>
-                <div class="shop-item"><span>10x (100 Koin)</span><button id="p10" class="btn-buy" onclick="beliPower(10, 100, 'p10')">Beli</button></div>
-                <div class="shop-item"><span>100x (700 Koin)</span><button id="p100" class="btn-buy" onclick="beliPower(100, 700, 'p100')">Beli</button></div>
+                <strong>🏪 COIN SHOP</strong>
+                <div class="shop-item"><span>3x (20 Coins)</span><button id="p3" class="btn-buy" onclick="beliPower(3, 20, 'p3')">Buy</button></div>
+                <div class="shop-item"><span>10x (100 Coins)</span><button id="p10" class="btn-buy" onclick="beliPower(10, 100, 'p10')">Buy</button></div>
+                <div class="shop-item"><span>100x (700 Coins)</span><button id="p100" class="btn-buy" onclick="beliPower(100, 700, 'p100')">Buy</button></div>
             </div>
 
             <div class="container">
                 <strong class="diamond-txt">💎 DIAMOND SHOP</strong>
-                <div class="shop-item"><span>1x Spin (2 DM)</span><button class="btn-buy" onclick="beliSpin(1, 2)">Beli</button></div>
-                <div class="shop-item"><span>2x Spin (4 DM)</span><button class="btn-buy" onclick="beliSpin(2, 4)">Beli</button></div>
-                <div class="shop-item"><span>4x Spin (10 DM)</span><button class="btn-buy" onclick="beliSpin(4, 10)">Beli</button></div>
+                <div class="shop-item"><span>1x Spin (2 DM)</span><button class="btn-buy" onclick="beliSpin(1, 2)">Buy</button></div>
+                <div class="shop-item"><span>2x Spin (4 DM)</span><button class="btn-buy" onclick="beliSpin(2, 4)">Buy</button></div>
+                <div class="shop-item"><span>4x Spin (10 DM)</span><button class="btn-buy" onclick="beliSpin(4, 10)">Buy</button></div>
             </div>
         </div>
     </div>
@@ -123,13 +120,28 @@
         let skor = 0, koin = 0, dm = 0, spin = 0, multiplier = 1, sisaWaktu = 300, gameBerjalan = false;
         let expiredTime = 19, isDGYExpired = false;
 
+        // --- ADMIN SYSTEM WITH PASSWORD ---
+        function checkAdminPassword() {
+            let pass = prompt("Enter Admin Password:");
+            if (pass === "adminbest") {
+                document.getElementById('admin-panel').style.display = 'block';
+            } else {
+                alert("Wrong password!");
+            }
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+
+        // --- GAME CORE ---
         setInterval(() => {
             if(expiredTime > 0) {
                 expiredTime--;
                 document.getElementById('timer-expired').innerText = expiredTime;
             } else if (!isDGYExpired) {
                 isDGYExpired = true;
-                document.getElementById('flash-event').innerHTML = "❌ KODE 'DGY' EXPIRED!";
+                document.getElementById('flash-event').innerHTML = "❌ CODE 'DGY' EXPIRED!";
             }
         }, 1000);
 
@@ -149,11 +161,6 @@
             setInterval(() => { if(sisaWaktu > 0) { sisaWaktu--; document.getElementById('waktu').innerText = sisaWaktu; } }, 1000);
         }
 
-        function toggleAdminPanel() {
-            let p = document.getElementById('admin-panel');
-            p.style.display = (p.style.display === 'block') ? 'none' : 'block';
-        }
-
         function sendOwnerMessage() {
             let msg = document.getElementById('admin-msg-input').value;
             let bar = document.getElementById('owner-announcement');
@@ -162,13 +169,13 @@
                 bar.classList.add('show');
                 setTimeout(() => { bar.classList.remove('show'); }, 4000);
                 document.getElementById('admin-msg-input').value = "";
-                toggleAdminPanel();
+                closeAdminPanel();
             }
         }
 
         function redeem() {
             let kode = document.getElementById('input-kode').value;
-            if (kode === "DGY" && !isDGYExpired) { koin += 300; dm += 199; alert("DGY Berhasil!"); }
+            if (kode === "DGY" && !isDGYExpired) { koin += 300; dm += 199; alert("DGY Success!"); }
             else if (kode === "78op") { koin += 50; }
             else if (kode === "67NBTC") { koin += 400; dm += 5; }
             else if (kode === "DEY") { dm += 5; }
@@ -180,12 +187,12 @@
 
         function beliPower(p, h, id) {
             if (koin >= h) { koin -= h; multiplier = p; document.getElementById(id).innerText="OWNED"; document.getElementById(id).disabled=true; updateDisplay(); }
-            else alert("Koin kurang!");
+            else alert("Not enough coins!");
         }
 
         function beliSpin(j, h) {
             if (dm >= h) { dm -= h; spin += j; updateDisplay(); }
-            else alert("DM kurang!");
+            else alert("Not enough DM!");
         }
 
         function putarSpin() {
@@ -194,9 +201,9 @@
                 const h = [50, 200, 500, 1000, "JACKPOT 5 DM"];
                 let res = h[Math.floor(Math.random()*h.length)];
                 if (res === "JACKPOT 5 DM") dm += 5; else koin += res;
-                document.getElementById('spin-result').innerText = "Hasil: " + res;
+                document.getElementById('spin-result').innerText = "Result: " + res;
                 updateDisplay();
-            } else alert("Tiket habis!");
+            } else alert("No spin tickets left!");
         }
     </script>
 </body>
