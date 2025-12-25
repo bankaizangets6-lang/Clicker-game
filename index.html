@@ -3,37 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <title>Ultimate Clicker - Owner Edition</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #0f172a; color: #fff; padding: 20px; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #0f172a; color: #fff; padding: 20px; overflow-x: hidden; margin: 0; }
         
-        #owner-announcement {
-            position: fixed; top: -100px; left: 0; width: 100%; padding: 12px;
-            background: linear-gradient(90deg, #ff0080, #7928ca);
-            color: white; font-size: 1.1rem; font-weight: bold; text-transform: uppercase;
-            box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4); z-index: 9999; 
-            transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); border-bottom: 2px solid #fff;
-            letter-spacing: 1px;
+        #lobby-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            display: flex; justify-content: center; align-items: center; z-index: 10000;
         }
+
+        @keyframes rgb-border {
+            0% { border-color: #ff0000; box-shadow: 0 0 20px #ff0000; }
+            33% { border-color: #00ff00; box-shadow: 0 0 20px #00ff00; }
+            66% { border-color: #0000ff; box-shadow: 0 0 20px #0000ff; }
+            100% { border-color: #ff0000; box-shadow: 0 0 20px #ff0000; }
+        }
+
+        @keyframes rgb-text {
+            0% { color: #ff0000; }
+            33% { color: #00ff00; }
+            66% { color: #0000ff; }
+            100% { color: #ff0000; }
+        }
+
+        .lobby-box {
+            background: #1e293b; padding: 40px; border-radius: 20px;
+            border: 3px solid #3b82f6; 
+            width: 80%; max-width: 350px;
+            animation: rgb-border 3s linear infinite;
+        }
+
+        .lobby-box h2 { 
+            margin-top: 0; font-size: 2rem; font-weight: 900;
+            animation: rgb-text 3s linear infinite;
+        }
+
+        #lobby-screen input { 
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569;
+            margin-bottom: 10px; background: #0f172a; color: white; text-align: center;
+        }
+        
+        .btn-start {
+            width: 100%; padding: 15px; background: #3b82f6; color: white;
+            border: none; border-radius: 10px; font-weight: bold; font-size: 1.1rem;
+            cursor: pointer; margin-top: 10px; transition: 0.3s;
+        }
+        .btn-start:hover { background: #2563eb; transform: scale(1.03); }
+
+        #leaderboard { position: fixed; top: 10px; left: 10px; width: 180px; background: rgba(30, 41, 59, 0.9); border: 1px solid #3b82f6; padding: 10px; border-radius: 10px; text-align: left; z-index: 1000; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+        #leaderboard h4 { margin: 0 0 5px 0; font-size: 0.8rem; color: #3b82f6; text-transform: uppercase; }
+        .lb-item { font-size: 0.75rem; border-bottom: 1px solid #334155; padding: 3px 0; display: flex; justify-content: space-between; }
+
+        #owner-announcement { position: fixed; top: -100px; left: 0; width: 100%; padding: 12px; background: linear-gradient(90deg, #ff0080, #7928ca); color: white; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4); z-index: 9999; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: 2px 2px 4px rgba(0,0,0,0.5); border-bottom: 2px solid #fff; letter-spacing: 1px; }
         #owner-announcement.show { top: 0; }
 
-        .admin-gui-trigger {
-            position: fixed; top: 10px; right: 10px; z-index: 1000;
-            background: #1e293b; border: 1px solid #ff0080; color: #ff0080;
-            padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;
-            font-size: 0.7rem; opacity: 0.7; transition: 0.3s;
-        }
-        .admin-gui-trigger:hover { opacity: 1; background: #ff0080; color: white; }
+        #chat-container { position: fixed; bottom: 10px; left: 10px; width: 250px; height: 230px; background: rgba(15, 23, 42, 0.95); border: 1px solid #3b82f6; border-radius: 10px; display: flex; flex-direction: column; z-index: 1000; overflow: hidden; transition: 0.3s; }
+        #chat-container.minimized { height: 35px; width: 150px; }
+        #chat-header { background: #1e293b; padding: 5px 10px; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3b82f6; }
+        #chat-messages { flex: 1; padding: 5px; overflow-y: auto; font-size: 0.75rem; text-align: left; color: #cbd5e1; }
+        #chat-input-area { display: flex; border-top: 1px solid #334155; }
+        #chat-input-area input { flex: 1; background: transparent; border: none; padding: 8px; color: white; font-size: 0.75rem; margin: 0; }
+        #chat-input-area button { background: #3b82f6; border: none; color: white; padding: 0 10px; cursor: pointer; }
+        .chat-msg { margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; }
+        .chat-owner-tag { color: #ff0080; font-weight: 900; text-shadow: 0 0 5px #ff0080; }
 
-        #admin-panel {
-            display: none; position: fixed; top: 50px; right: 10px; width: 200px;
-            background: #000; border: 2px solid #ff0080; padding: 15px;
-            border-radius: 12px; z-index: 1001; box-shadow: 0 0 20px rgba(0,0,0,0.8);
-        }
+        #ban-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #ef4444; z-index: 999999; justify-content: center; align-items: center; flex-direction: column; font-weight: bold; }
 
-        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 950px; margin: auto; }
+        .admin-gui-trigger { position: fixed; top: 10px; right: 10px; z-index: 1000; background: #1e293b; border: 1px solid #ff0080; color: #ff0080; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.7rem; opacity: 0.7; transition: 0.3s; }
+        #admin-panel { display: none; position: fixed; top: 50px; right: 10px; width: 220px; background: #000; border: 2px solid #ff0080; padding: 15px; border-radius: 12px; z-index: 1001; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+
+        .player-gui-trigger { display: none; position: fixed; top: 45px; right: 10px; z-index: 1000; background: #1e293b; border: 1px solid #3b82f6; color: #3b82f6; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.7rem; opacity: 0.7; transition: 0.3s; }
+        #player-panel { display: none; position: fixed; top: 85px; right: 10px; width: 220px; background: #0f172a; border: 2px solid #3b82f6; padding: 15px; border-radius: 12px; z-index: 1001; box-shadow: 0 0 20px rgba(0,0,0,0.8); text-align: left; }
+
+        .vip-gui-trigger { display: none; position: fixed; top: 125px; right: 10px; z-index: 1000; background: #1e293b; border: 1px solid #f59e0b; color: #f59e0b; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.7rem; opacity: 0.7; transition: 0.3s; box-shadow: 0 0 5px #f59e0b; }
+        #vip-panel { display: none; position: fixed; top: 165px; right: 10px; width: 220px; background: #0f172a; border: 2px solid #f59e0b; padding: 15px; border-radius: 12px; z-index: 1001; box-shadow: 0 0 20px rgba(0,0,0,0.8); text-align: left; }
+
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 950px; margin: auto; padding-top: 20px; }
         .container { background: #1e293b; padding: 20px; border-radius: 20px; border: 1px solid #334155; }
-        .stats-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; background: #000; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #3b82f6; }
+        .stats-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; background: #000; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #3b82f6; margin-top: 10px; }
         
         #btn-klik { padding: 40px; width: 100%; font-size: 28px; cursor: pointer; background: linear-gradient(45deg, #3b82f6, #06b6d4); color: white; border: none; border-radius: 15px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 0 #1d4ed8; }
         #btn-klik:active { transform: translateY(4px); box-shadow: none; }
@@ -46,28 +96,100 @@
         .btn-buy:disabled { background: #64748b !important; cursor: not-allowed; }
         .btn-spin { background: #f59e0b; color: white; width: 100%; padding: 12px; font-size: 1.1rem; }
 
-        input { width: 100%; padding: 8px; border-radius: 5px; border: none; margin-bottom: 8px; box-sizing: border-box; background: #1e293b; color: white; border: 1px solid #475569; }
-        .diamond-txt { color: #22d3ee; }
-        .coin-txt { color: #fbbf24; }
-        .expired-txt { color: #ef4444; font-size: 0.8rem; font-weight: bold; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: none; margin-bottom: 10px; box-sizing: border-box; background: #0f172a; color: white; border: 1px solid #475569; }
+        .diamond-txt { color: #22d3ee; } .coin-txt { color: #fbbf24; } .expired-txt { color: #ef4444; font-size: 0.8rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
+    <div id="ban-screen">
+        <h1>🚫 ACCOUNT BANNED</h1>
+        <p>You have been banned for cheating or bullying.</p>
+    </div>
+
+    <div id="lobby-screen">
+        <div class="lobby-box">
+            <h2>CLICKER GAME</h2>
+            <p style="font-size: 0.8rem; color: #94a3b8;">Enter your name to start clicking!</p>
+            <input type="text" id="name-input" placeholder="Your Name..." maxlength="12">
+            <button class="btn-start" onclick="startGame()">START GAME</button>
+        </div>
+    </div>
+
+    <div id="leaderboard">
+        <h4>🏆 Leaderboard</h4>
+        <div id="lb-list">
+            <div class="lb-item"><span id="display-player-name">Player</span><span id="top-score">0</span></div>
+        </div>
+    </div>
+
+    <div id="chat-container">
+        <div id="chat-header" onclick="toggleChat()">
+            <span>💬 GLOBAL CHAT (ONLINE)</span>
+            <span id="chat-toggle-icon">−</span>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Say something..." onkeypress="if(event.key==='Enter') sendGlobalChat()">
+            <button onclick="sendGlobalChat()">></button>
+        </div>
+    </div>
+
     <div id="owner-announcement">Owner Message!</div>
 
-    <button class="admin-gui-trigger" onclick="checkAdminPassword()">⚙️ ADMIN</button>
+    <button class="admin-gui-trigger" onclick="handleAdminClick()">⚙️ ADMIN</button>
+    
+    <button id="player-btn-trigger" class="player-gui-trigger" onclick="togglePlayerPanel()">👤 PLAYER</button>
+    <button id="vip-btn-trigger" class="vip-gui-trigger" onclick="toggleVipPanel()">🌟 VIP</button>
 
     <div id="admin-panel">
         <h4 style="color:#ff0080; margin:0 0 10px 0;">Owner Tools</h4>
-        <input type="text" id="admin-msg-input" placeholder="Announcement text...">
-        <button class="btn-buy" style="width:100%; background:#7928ca; font-size:0.8rem;" onclick="sendOwnerMessage()">SEND MESSAGE</button>
-        <button onclick="closeAdminPanel()" style="background:none; color:gray; font-size:0.6rem; margin-top:10px;">Close [X]</button>
+        
+        <button class="btn-buy" style="width:100%; background:#f59e0b; color:black; font-size:0.8rem; margin-bottom: 10px;" onclick="unlockVipInstantly()">🔓 UNLOCK VIP PANEL</button>
+        <hr style="border: 0.5px solid #333; margin-bottom: 10px;">
+        
+        <p style="font-size: 0.7rem; margin-bottom: 5px; color: #ff4444; font-weight: bold;">⚠️ ABUSE TOOLS:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;">
+            <button class="btn-buy" style="background:#ef4444; font-size:0.7rem;" onclick="abuseInfDM()">INF DM</button>
+            <button class="btn-buy" style="background:#ef4444; font-size:0.7rem;" onclick="abuseGodClick()">GOD CLICK</button>
+            <button class="btn-buy" style="background:#8b5cf6; font-size:0.7rem;" onclick="abuseRealBan()">BAN PLAYER</button>
+            <button class="btn-buy" style="background:#10b981; font-size:0.7rem;" onclick="abuseResetTime()">FIX TIME</button>
+        </div>
+        <hr style="border: 0.5px solid #333; margin-bottom: 10px;">
+
+        <p style="font-size: 0.7rem; margin-bottom: 5px; color: #ccc;">Global Announcement:</p>
+        <input type="text" id="admin-msg-input" placeholder="Type text...">
+        <button class="btn-buy" style="width:100%; background:#7928ca; font-size:0.8rem; margin-bottom: 10px;" onclick="sendOwnerMessage()">SEND MESSAGE</button>
+        <p style="font-size: 0.7rem; margin-bottom: 5px; color: #ccc;">Add Instant Coins:</p>
+        <input type="number" id="admin-coin-input" placeholder="Amount...">
+        <button class="btn-buy" style="width:100%; background:#3b82f6; font-size:0.8rem; margin-bottom: 10px;" onclick="addAdminCoins()">ADD COINS</button>
+        <button class="btn-buy" style="width:100%; background:#ef4444; font-size:0.8rem;" onclick="resetLeaderboard()">RESET LEADERBOARD</button>
+        <button onclick="closeAdminPanel()" style="background:none; color:gray; font-size:0.6rem; margin-top:15px;">Close [X]</button>
+    </div>
+
+    <div id="player-panel">
+        <h4 style="color:#3b82f6; margin:0 0 10px 0;">Player Panel</h4>
+        <p style="font-size: 0.7rem; margin-bottom: 5px; color: #ccc;">Instant Coins (Max 1000):</p>
+        <input type="number" id="player-coin-input" placeholder="Enter amount...">
+        <button class="btn-buy" style="width:100%; background:#3b82f6; font-size:0.8rem;" onclick="addPlayerCoins()">CLAIM COINS</button>
+        <button onclick="togglePlayerPanel()" style="background:none; color:gray; font-size:0.6rem; margin-top:15px; display:block; width:100%;">Close [X]</button>
+    </div>
+
+    <div id="vip-panel">
+        <h4 style="color:#f59e0b; margin:0 0 10px 0;">VIP Exclusive</h4>
+        <p style="font-size: 0.75rem; color: #10b981; margin-bottom: 10px;">✨ Active: Luck Boost 15%</p>
+        <div style="background: #1e293b; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #f59e0b;">
+            <p style="font-size: 0.7rem; margin: 0 0 5px 0;">Auto Clicker:</p>
+            <button id="btn-autoclick" class="btn-buy" style="width:100%; background: #475569;" onclick="toggleAutoClick()">OFF</button>
+        </div>
+        <p style="font-size: 0.7rem; margin-bottom: 5px; color: #ccc;">Instant Coins (Max 2000):</p>
+        <input type="number" id="vip-coin-input" placeholder="Enter amount...">
+        <button class="btn-buy" style="width:100%; background:#f59e0b; color: #000; font-size:0.8rem;" onclick="addVipCoins()">CLAIM VIP COINS</button>
+        <button onclick="toggleVipPanel()" style="background:none; color:gray; font-size:0.6rem; margin-top:15px; display:block; width:100%;">Close [X]</button>
     </div>
 
     <h1>💎 Ultimate Clicker Tycoon</h1>
-    
-    <div id="flash-event" class="expired-txt" style="background: #450a0a; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+    <div id="flash-event" class="expired-txt" style="background: #450a0a; padding: 10px; border-radius: 10px; margin-bottom: 10px; margin-top: 10px;">
         ⚠️ CODE 'DGY' EXPIRES IN: <span id="timer-expired">19</span>s!
     </div>
 
@@ -84,13 +206,11 @@
             <div class="container">
                 <button id="btn-klik" onclick="tambahSkor()">CLICK!</button>
                 <p id="multiplier-active" style="color:#10b981; font-weight:bold; font-size: 0.9rem;">Multiplier: 1x</p>
-                
                 <div class="section">
                     <strong>🎟️ REDEEM CODE</strong>
                     <input type="text" id="input-kode" placeholder="Enter code...">
                     <button class="btn-buy" style="width:100%" onclick="redeem()">Claim</button>
                 </div>
-
                 <div class="section" style="text-align:center;">
                     <strong>🎰 LUCKY WHEEL</strong><br><br>
                     <button class="btn-spin" onclick="putarSpin()">SPIN NOW</button>
@@ -106,104 +226,209 @@
                 <div class="shop-item"><span>10x (100 Coins)</span><button id="p10" class="btn-buy" onclick="beliPower(10, 100, 'p10')">Buy</button></div>
                 <div class="shop-item"><span>100x (700 Coins)</span><button id="p100" class="btn-buy" onclick="beliPower(100, 700, 'p100')">Buy</button></div>
             </div>
-
             <div class="container">
                 <strong class="diamond-txt">💎 DIAMOND SHOP</strong>
                 <div class="shop-item"><span>1x Spin (2 DM)</span><button class="btn-buy" onclick="beliSpin(1, 2)">Buy</button></div>
                 <div class="shop-item"><span>2x Spin (4 DM)</span><button class="btn-buy" onclick="beliSpin(2, 4)">Buy</button></div>
-                <div class="shop-item"><span>4x Spin (10 DM)</span><button class="btn-buy" onclick="beliSpin(4, 10)">Buy</button></div>
             </div>
         </div>
     </div>
 
     <script>
+        // --- KONFIGURASI DATABASE ---
+        const firebaseConfig = {
+            databaseURL: "https://clickergame-655b5-default-rtdb.asia-southeast1.firebasedatabase.app/" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         let skor = 0, koin = 0, dm = 0, spin = 0, multiplier = 1, sisaWaktu = 300, gameBerjalan = false;
         let expiredTime = 19, isDGYExpired = false;
+        let hasPlayerCard = false; 
+        let hasVipCard = false; 
+        let autoClickInterval = null; 
+        let pName = localStorage.getItem('clickerUsername') || "";
+        const OWNER_ID = "yesadmingod";
 
-        // --- ADMIN SYSTEM WITH PASSWORD ---
-        function checkAdminPassword() {
-            let pass = prompt("Enter Admin Password:");
-            if (pass === "adminbest") {
-                document.getElementById('admin-panel').style.display = 'block';
+        if(pName) document.getElementById('name-input').value = pName;
+
+        // --- GLOBAL CHAT SYSTEM ---
+        function sendGlobalChat() {
+            let input = document.getElementById('chat-input');
+            let msg = input.value.trim();
+            if(msg === "" || !pName) return;
+            database.ref('chats').push().set({ username: pName, message: msg, timestamp: Date.now() });
+            input.value = "";
+        }
+
+        database.ref('chats').limitToLast(20).on('child_added', (snapshot) => {
+            const data = snapshot.val();
+            let box = document.getElementById('chat-messages');
+            let div = document.createElement('div');
+            div.className = 'chat-msg';
+            let nameTag = data.username;
+            if(data.username === OWNER_ID) nameTag = `<span class="chat-owner-tag">[OWNER] ${data.username}</span>`;
+            else if(data.username === "SYSTEM") nameTag = `<span style="color: #64748b; font-weight: bold;">[SYSTEM]</span>`;
+            div.innerHTML = `${nameTag}: ${data.message}`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        });
+
+        // --- GLOBAL ANNOUNCEMENT SYSTEM (LISTENER) ---
+        // Ini yang bikin layar player lain otomatis muncul pengumuman lu
+        database.ref('announcement').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.text) {
+                let bar = document.getElementById('owner-announcement');
+                bar.innerText = "📣 " + data.text;
+                bar.classList.add('show');
+                setTimeout(() => bar.classList.remove('show'), 6000); // Muncul 6 detik
+            }
+        });
+
+        function toggleChat() {
+            const chat = document.getElementById('chat-container');
+            const icon = document.getElementById('chat-toggle-icon');
+            chat.classList.toggle('minimized');
+            icon.innerText = chat.classList.contains('minimized') ? "+" : "−";
+        }
+
+        // --- GAME LOGIC ---
+        function startGame() {
+            let val = document.getElementById('name-input').value;
+            if(val.trim() === "") return alert("Please enter a name!");
+            pName = val;
+            localStorage.setItem('clickerUsername', pName);
+            document.getElementById('display-player-name').innerText = "1. " + pName;
+            document.getElementById('lobby-screen').style.display = "none";
+            database.ref('chats').push().set({ username: "SYSTEM", message: `${pName} joined the game!` });
+            updateDisplay();
+        }
+        
+        let highScore = localStorage.getItem('clickerHighScore') || 0;
+        document.getElementById('top-score').innerText = highScore;
+
+        function handleAdminClick() {
+            if (pName === OWNER_ID) document.getElementById('admin-panel').style.display = 'block';
+            else alert("❌ IDENTITY SCAN FAILED.");
+        }
+
+        // --- ADMIN TOOLS ---
+        function abuseInfDM() { dm = 9999999; spin = 999; updateDisplay(); }
+        function abuseGodClick() { multiplier = 1000000; document.getElementById('multiplier-active').innerText = "Multiplier: GOD"; updateDisplay(); }
+        
+        function abuseRealBan() { 
+            let v = prompt("BAN PLAYER:"); 
+            if(v) { 
+                database.ref('chats').push().set({ username: "SYSTEM", message: `${v} was BANNED by Owner!` });
+                if(v === pName) document.getElementById('ban-screen').style.display = 'flex';
+            } 
+        }
+
+        function abuseResetTime() { sisaWaktu = 9999; updateDisplay(); }
+        function unlockVipInstantly() { hasVipCard = true; updateDisplay(); closeAdminPanel(); }
+
+        // --- GLOBAL ANNOUNCEMENT (SENDER) ---
+        function sendOwnerMessage() {
+            let msg = document.getElementById('admin-msg-input').value;
+            if(msg.trim() === "") return;
+
+            // Update ke Firebase biar SEMUA player dapet
+            database.ref('announcement').set({
+                text: msg,
+                timestamp: Date.now()
+            });
+
+            // Kirim ke log chat juga
+            database.ref('chats').push().set({ username: OWNER_ID, message: "📢 " + msg });
+
+            document.getElementById('admin-msg-input').value = ""; 
+            closeAdminPanel();
+        }
+
+        function togglePlayerPanel() { let panel = document.getElementById('player-panel'); panel.style.display = (panel.style.display === 'block') ? 'none' : 'block'; }
+        function toggleVipPanel() { let panel = document.getElementById('vip-panel'); panel.style.display = (panel.style.display === 'block') ? 'none' : 'block'; }
+
+        function toggleAutoClick() {
+            let btn = document.getElementById('btn-autoclick');
+            if (autoClickInterval) {
+                clearInterval(autoClickInterval); autoClickInterval = null;
+                btn.innerText = "OFF";
             } else {
-                alert("Wrong password!");
+                btn.innerText = "ON (AUTO)";
+                autoClickInterval = setInterval(() => { tambahSkor(); }, 100);
             }
         }
 
-        function closeAdminPanel() {
-            document.getElementById('admin-panel').style.display = 'none';
+        function addPlayerCoins() {
+            let input = document.getElementById('player-coin-input');
+            let amount = parseInt(input.value);
+            if(isNaN(amount)) return;
+            koin += (amount > 1000) ? 1000 : amount;
+            updateDisplay(); input.value = ""; togglePlayerPanel();
         }
 
-        // --- GAME CORE ---
+        function addVipCoins() {
+            let input = document.getElementById('vip-coin-input');
+            let amount = parseInt(input.value);
+            if(isNaN(amount)) return;
+            koin += (amount > 2000) ? 2000 : amount;
+            updateDisplay(); input.value = ""; toggleVipPanel();
+        }
+
+        function closeAdminPanel() { document.getElementById('admin-panel').style.display = 'none'; }
+        function addAdminCoins() {
+            let amount = parseInt(document.getElementById('admin-coin-input').value);
+            if (!isNaN(amount)) { koin += amount; updateDisplay(); document.getElementById('admin-coin-input').value = ""; }
+        }
+        function resetLeaderboard() { if(confirm("Reset?")) { localStorage.clear(); location.reload(); } }
+
         setInterval(() => {
-            if(expiredTime > 0) {
-                expiredTime--;
-                document.getElementById('timer-expired').innerText = expiredTime;
-            } else if (!isDGYExpired) {
-                isDGYExpired = true;
-                document.getElementById('flash-event').innerHTML = "❌ CODE 'DGY' EXPIRED!";
-            }
+            if(expiredTime > 0) { expiredTime--; document.getElementById('timer-expired').innerText = expiredTime; } 
+            else if (!isDGYExpired) { isDGYExpired = true; document.getElementById('flash-event').innerHTML = "❌ CODE 'DGY' EXPIRED!"; }
         }, 1000);
 
         function updateDisplay() {
-            document.getElementById('koin').innerText = koin;
+            document.getElementById('koin').innerText = koin; 
             document.getElementById('skor').innerText = skor;
-            document.getElementById('dm').innerText = dm;
+            document.getElementById('dm').innerText = dm; 
             document.getElementById('jumlah-spin').innerText = spin;
+            document.getElementById('waktu').innerText = sisaWaktu;
+            if(hasPlayerCard) document.getElementById('player-btn-trigger').style.display = "block";
+            if(hasVipCard) document.getElementById('vip-btn-trigger').style.display = "block";
+            if (skor > highScore) { highScore = skor; localStorage.setItem('clickerHighScore', highScore); document.getElementById('top-score').innerText = highScore; }
         }
 
-        function tambahSkor() {
-            if (!gameBerjalan) { mulaiTimer(); gameBerjalan = true; }
-            skor += multiplier; updateDisplay();
-        }
-
-        function mulaiTimer() {
-            setInterval(() => { if(sisaWaktu > 0) { sisaWaktu--; document.getElementById('waktu').innerText = sisaWaktu; } }, 1000);
-        }
-
-        function sendOwnerMessage() {
-            let msg = document.getElementById('admin-msg-input').value;
-            let bar = document.getElementById('owner-announcement');
-            if(msg.trim() !== "") {
-                bar.innerText = "📣 " + msg;
-                bar.classList.add('show');
-                setTimeout(() => { bar.classList.remove('show'); }, 4000);
-                document.getElementById('admin-msg-input').value = "";
-                closeAdminPanel();
-            }
+        function tambahSkor() { 
+            if (!gameBerjalan) { 
+                setInterval(() => { if(sisaWaktu > 0) sisaWaktu--; updateDisplay(); }, 1000); 
+                gameBerjalan = true; 
+            } 
+            skor += multiplier; 
+            updateDisplay(); 
         }
 
         function redeem() {
             let kode = document.getElementById('input-kode').value;
             if (kode === "DGY" && !isDGYExpired) { koin += 300; dm += 199; alert("DGY Success!"); }
-            else if (kode === "78op") { koin += 50; }
-            else if (kode === "67NBTC") { koin += 400; dm += 5; }
-            else if (kode === "DEY") { dm += 5; }
-            else if (kode === "Brosey") { dm += 10; }
-            else if (kode === "Broty") { koin += 10; spin += 1; }
-            document.getElementById('input-kode').value = "";
-            updateDisplay();
+            document.getElementById('input-kode').value = ""; updateDisplay();
         }
-
-        function beliPower(p, h, id) {
-            if (koin >= h) { koin -= h; multiplier = p; document.getElementById(id).innerText="OWNED"; document.getElementById(id).disabled=true; updateDisplay(); }
-            else alert("Not enough coins!");
-        }
-
-        function beliSpin(j, h) {
-            if (dm >= h) { dm -= h; spin += j; updateDisplay(); }
-            else alert("Not enough DM!");
-        }
-
+        function beliPower(p, h, id) { if (koin >= h) { koin -= h; multiplier = p; document.getElementById(id).innerText="OWNED"; document.getElementById(id).disabled=true; updateDisplay(); } }
+        function beliSpin(j, h) { if (dm >= h) { dm -= h; spin += j; updateDisplay(); } }
+        
         function putarSpin() {
             if (spin > 0) {
-                spin--;
-                const h = [50, 200, 500, 1000, "JACKPOT 5 DM"];
-                let res = h[Math.floor(Math.random()*h.length)];
-                if (res === "JACKPOT 5 DM") dm += 5; else koin += res;
-                document.getElementById('spin-result').innerText = "Result: " + res;
-                updateDisplay();
-            } else alert("No spin tickets left!");
+                spin--; let randomVal = Math.random(); let res;
+                let playerChance = hasVipCard ? 0.15 : 0.01;
+                if (randomVal <= 0.001 && !hasVipCard) { hasVipCard = true; res = "👑 MYTHICAL: VIP CARD!"; }
+                else if (randomVal <= playerChance && !hasPlayerCard) { hasPlayerCard = true; res = "✨ ULTRA RARE: PLAYER CARD!"; }
+                else {
+                    const h = [50, 200, 500, 1000, "JACKPOT 5 DM"];
+                    res = h[Math.floor(Math.random()*h.length)];
+                    if (res === "JACKPOT 5 DM") dm += 5; else koin += res;
+                }
+                document.getElementById('spin-result').innerText = "Result: " + res; updateDisplay();
+            } else alert("No spin tickets!");
         }
     </script>
 </body>
